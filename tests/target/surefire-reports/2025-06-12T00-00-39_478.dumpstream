@@ -1,0 +1,12 @@
+# Created at 2025-06-12T00:00:42.227
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+
+# Created at 2025-06-12T00:00:42.228
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/C:/Users/ECOM/.m2/repository/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar)
+
+# Created at 2025-06-12T00:00:42.229
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+
+# Created at 2025-06-12T00:00:42.230
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import './Inicio.css';
+import './InicioVideoStyle.css';
 
 const InicioVideo: React.FC = () => {
   return (

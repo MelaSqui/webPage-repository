@@ -1,0 +1,4 @@
+"Story","Title","Result","Date","Stability","Duration (s)"
+"Carrusel en la página de inicio","El usuario ve el carrusel al entrar a la página principal","SUCCESS","2025-06-12T00:00:44.3093821-04:00[America/La_Paz]","0.0","0.38"
+"Carrusel en la página de inicio","El carrusel muestra la primera imagen por defecto","SUCCESS","2025-06-12T00:00:44.7075923-04:00[America/La_Paz]","0.0","0.02"
+"Carrusel en la página de inicio","El usuario navega a la siguiente imagen del carrusel","SUCCESS","2025-06-12T00:00:44.7685402-04:00[America/La_Paz]","0.0","0.03"

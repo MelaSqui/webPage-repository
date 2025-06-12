@@ -7,7 +7,7 @@ const MenuBar = () => {
       <MenuItem to="/" text="Inicio" />
       <MenuItem to="/acerca-de" text="Acerca de" />
       <MenuItem to="/servicios" text="Servicios" />
-      <MenuItem to="/contacto" text="Contacto" />
+      <MenuItem to="/contactos" text="Contacto" />
     </nav>
   );
 };
