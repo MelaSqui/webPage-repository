@@ -1,115 +1,180 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import './ChatBot.css';
 
 type Message = {
   text: string;
   from: 'user' | 'bot';
-};
-
-const getBotResponse = (input: string): string => {
-  const msg = input.trim().toLowerCase();
-
-  // Preguntas clave sobre el cuidado de mascotas
-  if (
-    msg.includes('¿cómo cuido a mi perro?') ||
-    msg.includes('como cuido a mi perro')
-  ) {
-    return 'Para cuidar a tu perro, proporciónale una dieta equilibrada, ejercicio diario, agua fresca, visitas regulares al veterinario y mucho cariño. ¿Te gustaría saber sobre vacunas, alimentación o entrenamiento?';
-  }
-  if (
-    msg.includes('¿cada cuánto debo bañar a mi gato?') ||
-    msg.includes('cada cuanto debo bañar a mi gato')
-  ) {
-    return 'Los gatos suelen asearse solos, pero si es necesario, puedes bañarlo cada 2-3 meses con productos especiales para gatos. ¿Quieres consejos para bañar a tu gato sin estrés?';
-  }
-  if (
-    msg.includes('¿qué vacunas necesita mi mascota?') ||
-    msg.includes('que vacunas necesita mi mascota')
-  ) {
-    return 'Las vacunas esenciales para perros y gatos incluyen la antirrábica y las vacunas contra enfermedades virales. ¿Te gustaría conocer el calendario de vacunación recomendado?';
-  }
-  if (
-    msg.includes('¿qué alimento es mejor para mi mascota?') ||
-    msg.includes('que alimento es mejor para mi mascota')
-  ) {
-    return 'El mejor alimento depende de la especie, edad y estado de salud de tu mascota. Consulta con tu veterinario para una recomendación personalizada. ¿Quieres saber sobre alimentos comerciales o naturales?';
-  }
-  if (
-    msg.includes('¿cómo entreno a mi perro?') ||
-    msg.includes('como entreno a mi perro')
-  ) {
-    return 'El entrenamiento debe ser positivo y consistente. Usa premios, refuerzos y sesiones cortas. ¿Te gustaría algunos consejos básicos de obediencia?';
-  }
-  if (
-    msg.includes('¿cómo evito que mi gato arañe los muebles?') ||
-    msg.includes('como evito que mi gato arañe los muebles')
-  ) {
-    return 'Proporciónale rascadores y juega con él para canalizar su energía. Usa repelentes seguros y refuerza el buen comportamiento. ¿Quieres más ideas para proteger tus muebles?';
-  }
-  // Saludo y despedida
-  if (msg.includes('hola') || msg.includes('buenas')) {
-    return '¡Hola! Soy una IA lista para ayudarte con el cuidado de tus mascotas 🐶🐱. Puedes preguntarme, por ejemplo: ¿Cómo cuido a mi perro? ¿Qué vacunas necesita mi mascota?';
-  }
-  if (msg.includes('adiós') || msg.includes('gracias')) {
-    return '¡Hasta luego! Si tienes más preguntas sobre tus mascotas, aquí estaré para ayudarte.';
-  }
-  // Respuesta por defecto
-  return 'Interesante pregunta. Como IA, intento ayudarte lo mejor posible, pero no entendí exactamente tu consulta. Puedes preguntarme, por ejemplo: ¿Cómo cuido a mi perro? ¿Qué alimento es mejor para mi mascota? ¿Cómo entreno a mi perro?';
+  timestamp: Date;
 };
 
 const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
+  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll al final cuando hay nuevos mensajes
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   // Saludo automático al iniciar el chat
   useEffect(() => {
-    setMessages([
-      {
-        text:
-          '¡Hola! Soy una IA lista para ayudarte con el cuidado de tus mascotas 🐶🐱. Puedes preguntarme, por ejemplo:\n' +
-          '• ¿Cómo cuido a mi perro?\n' +
-          '• ¿Qué vacunas necesita mi mascota?\n' +
-          '• ¿Qué alimento es mejor para mi mascota?\n' +
-          '• ¿Cómo entreno a mi perro?\n' +
-          '• ¿Cómo evito que mi gato arañe los muebles?',
-        from: 'bot'
-      }
-    ]);
+    const welcomeMessage: Message = {
+      text: '¡Hola! Soy tu asistente de IA especializado en mascotas 🐾\n\n¿En qué puedo ayudarte hoy?',
+      from: 'bot',
+      timestamp: new Date()
+    };
+    
+    // Simular efecto de escritura para el mensaje de bienvenida
+    setTimeout(() => {
+      setMessages([welcomeMessage]);
+    }, 500);
   }, []);
 
-  const handleSend = () => {
+  const simulateTyping = (duration: number = 1500) => {
+    setIsTyping(true);
+    setTimeout(() => setIsTyping(false), duration);
+  };
+
+  const handleSend = async () => {
     if (input.trim()) {
-      const userMsg: Message = { text: input, from: 'user' };
-      const botMsg: Message = { text: getBotResponse(input), from: 'bot' };
-      setMessages(prev => [...prev, userMsg, botMsg]);
+      const userMsg: Message = { 
+        text: input, 
+        from: 'user',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, userMsg]);
+      setLoading(true);
+      simulateTyping();
+
+      try {
+        const res = await axios.post('http://localhost:3001/api/chatbot', {
+          prompt: input,
+        });
+        
+        setTimeout(() => {
+          const botMsg: Message = { 
+            text: res.data.response, 
+            from: 'bot',
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, botMsg]);
+        }, 1000);
+        
+      } catch (error) {
+        setTimeout(() => {
+          setMessages(prev => [
+            ...prev,
+            { 
+              text: 'Lo siento, ocurrió un error al conectar con el servidor. Por favor, inténtalo de nuevo.', 
+              from: 'bot',
+              timestamp: new Date()
+            }
+          ]);
+        }, 1000);
+      }
+      
       setInput('');
+      setLoading(false);
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+
   return (
-    <div className="chatbot-container">
-      <div className="chatbot-header">Chat IA de Mascotas</div>
-      <div className="chatbot-messages">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`chatbot-message ${msg.from === 'bot' ? 'bot' : 'user'}`}
-            style={msg.from === 'bot' ? { whiteSpace: 'pre-line' } : {}}
-          >
-            {msg.text}
+    <div className={`chatbot-container ${isMinimized ? 'minimized' : ''}`}>
+      <div className="chatbot-header" onClick={toggleMinimize}>
+        <div className="header-content">
+          <div className="bot-avatar">🤖</div>
+          <div className="header-text">
+            <span className="bot-name">PetBot IA</span>
+            <span className="bot-status">En línea</span>
           </div>
-        ))}
+        </div>
+        <button className="minimize-btn">
+          {isMinimized ? '▲' : '▼'}
+        </button>
       </div>
-      <div className="chatbot-input">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Escribe tu mensaje..."
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-        />
-        <button onClick={handleSend}>Enviar</button>
-      </div>
+      
+      {!isMinimized && (
+        <>
+          <div className="chatbot-messages">
+            {messages.map((msg, index) => (
+              <div key={index} className={`message-wrapper ${msg.from}`}>
+                <div className={`chatbot-message ${msg.from}`}>
+                  <div className="message-content">
+                    {msg.text}
+                  </div>
+                  <div className="message-time">
+                    {formatTime(msg.timestamp)}
+                  </div>
+                </div>
+                {msg.from === 'bot' && index === 0 && (
+                  <div className="message-avatar">🐾</div>
+                )}
+              </div>
+            ))}
+            
+            {isTyping && (
+              <div className="message-wrapper bot">
+                <div className="chatbot-message bot typing">
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          
+          <div className="chatbot-input">
+            <div className="input-wrapper">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Pregunta sobre el cuidado de tu mascota..."
+                disabled={loading}
+                rows={1}
+                className="message-input"
+              />
+              <button 
+                onClick={handleSend} 
+                disabled={loading || !input.trim()}
+                className="send-button"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
